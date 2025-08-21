@@ -11,6 +11,7 @@ export interface ContestStats {
   categories: string[];
   averageGrade: number;
   topGrade: number;
+  categoriesCount: { [key: string]: number };
 }
 
 export interface RegisteredStudent {

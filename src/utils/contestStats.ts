@@ -5,12 +5,18 @@ export const calculateStats = (students: Student[]): ContestStats => {
   const totalStudents = students.length;
   const averageGrade = Math.round(students.reduce((sum, s) => sum + s.grade, 0) / totalStudents);
   const topGrade = Math.max(...students.map(s => s.grade));
+  
+  const categoriesCount: { [key: string]: number } = {};
+  students.forEach(student => {
+    categoriesCount[student.category] = (categoriesCount[student.category] || 0) + 1;
+  });
 
   return {
     totalStudents,
     categories,
     averageGrade,
-    topGrade
+    topGrade,
+    categoriesCount
   };
 };
 
