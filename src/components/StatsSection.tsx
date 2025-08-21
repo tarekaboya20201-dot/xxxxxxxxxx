@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Users, Trophy, TrendingUp, Target } from 'lucide-react';
 import { ContestStats } from '../types';
-import { getResultsStats } from '../utils/api';
 
 interface StatsSectionProps {
   stats: ContestStats;
@@ -9,32 +8,6 @@ interface StatsSectionProps {
 }
 
 export const StatsSection: React.FC<StatsSectionProps> = ({ stats, isDarkMode = false }) => {
-  const [resultsStats, setResultsStats] = useState({
-    totalStudents: 0,
-    averageGrade: 0,
-    topGrade: 0,
-    categoriesCount: {} as { [key: string]: number }
-  });
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    loadResultsStats();
-  }, []);
-
-  const loadResultsStats = async () => {
-    try {
-      setIsLoading(true);
-
-
-      const stats = await getResultsStats();
-      setResultsStats(stats);
-    } catch (error) {
-      console.error('Error loading results stats:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <section className={`py-16 transition-colors duration-300 ${
       isDarkMode 
@@ -56,11 +29,7 @@ export const StatsSection: React.FC<StatsSectionProps> = ({ stats, isDarkMode = 
             <h3 className={`text-3xl font-bold mb-2 transition-all duration-300 ${
               isDarkMode ? 'text-green-400' : 'text-green-600'
             }`}>
-              {isLoading ? (
-                <div className="inline-block w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                resultsStats.totalStudents.toLocaleString('ar-EG')
-              )}
+              {stats.totalStudents.toLocaleString('ar-EG')}
             </h3>
             <p className={`font-semibold ${isDarkMode ? 'text-green-300' : 'text-green-700'}`}>
               إجمالي الطلاب المشاركين
@@ -76,7 +45,7 @@ export const StatsSection: React.FC<StatsSectionProps> = ({ stats, isDarkMode = 
             <h3 className={`text-3xl font-bold mb-2 ${
               isDarkMode ? 'text-yellow-400' : 'text-yellow-600'
             }`}>
-              {resultsStats.topGrade > 0 ? resultsStats.topGrade : 'لا توجد نتائج'}
+              {stats.topGrade > 0 ? stats.topGrade : 'لا توجد نتائج'}
             </h3>
             <p className={`font-semibold ${isDarkMode ? 'text-yellow-300' : 'text-yellow-700'}`}>
               أعلى درجة
@@ -92,7 +61,7 @@ export const StatsSection: React.FC<StatsSectionProps> = ({ stats, isDarkMode = 
             <h3 className={`text-3xl font-bold mb-2 ${
               isDarkMode ? 'text-purple-400' : 'text-purple-600'
             }`}>
-              {resultsStats.averageGrade > 0 ? resultsStats.averageGrade : 'لا توجد نتائج'}
+              {stats.averageGrade > 0 ? stats.averageGrade : 'لا توجد نتائج'}
             </h3>
             <p className={`font-semibold ${isDarkMode ? 'text-purple-300' : 'text-purple-700'}`}>
               المتوسط العام
@@ -108,7 +77,7 @@ export const StatsSection: React.FC<StatsSectionProps> = ({ stats, isDarkMode = 
             <h3 className={`text-3xl font-bold mb-2 ${
               isDarkMode ? 'text-blue-400' : 'text-blue-600'
             }`}>
-              {Object.keys(resultsStats.categoriesCount).length || 8}
+              {Object.keys(stats.categoriesCount).length || 8}
             </h3>
             <p className={`font-semibold ${isDarkMode ? 'text-blue-300' : 'text-blue-700'}`}>
               عدد الفئات

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Student, Result } from '../types';
 import { ChevronDown, ChevronUp, List, Filter, Clock, Calendar, AlertCircle } from 'lucide-react';
 import { getCategoryColor, getGradeColor } from '../utils/contestStats';
-import { getAllResults } from '../utils/api';
 
 interface AllResultsSectionProps {
   students: Student[];
@@ -13,31 +12,24 @@ export const AllResultsSection: React.FC<AllResultsSectionProps> = ({ students, 
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [contestStarted] = useState(true); // النتائج متاحة الآن
-  const [results, setResults] = useState<Result[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  
+  // تحويل Students إلى Results
+  const results: Result[] = students.map(student => ({
+    id: student.id,
+    name: student.name,
+    category: student.category,
+    grade: student.grade,
+    rank: student.rank,
+    no: student.id
+  }));
   
   const categories = [...new Set(results.map(r => r.category))];
   const filteredResults = selectedCategory === 'all' 
     ? results 
     : results.filter(r => r.category === selectedCategory);
 
-  const loadResults = async () => {
-    setIsLoading(true);
-    try {
-      const allResults = await getAllResults();
-      setResults(allResults);
-    } catch (error) {
-      console.error('Error loading results:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleExpand = () => {
     setIsExpanded(!isExpanded);
-    if (!isExpanded && results.length === 0) {
-      loadResults();
-    }
   };
 
   return (
@@ -56,14 +48,7 @@ export const AllResultsSection: React.FC<AllResultsSectionProps> = ({ students, 
 
         {isExpanded && (
           <div className="animate-fadeIn">
-            {isLoading ? (
-              <div className="text-center py-16">
-                <div className="inline-block w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className={`text-xl ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  جاري تحميل النتائج...
-                </p>
-              </div>
-            ) : results.length === 0 ? (
+            {results.length === 0 ? (
               /* No results message */
               <div className="max-w-2xl mx-auto">
                 <div className={`border-2 rounded-3xl p-8 shadow-2xl relative overflow-hidden transition-colors duration-300 ${

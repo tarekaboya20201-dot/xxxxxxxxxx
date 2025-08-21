@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Search, User, AlertTriangle } from 'lucide-react';
 import { Student, Result } from '../types';
-import { searchResults } from '../utils/api';
 
 interface SearchSectionProps {
   students: Student[];
@@ -33,11 +32,25 @@ export default function SearchSection({ students, onSearch, isDarkMode = false }
     
     try {
       console.log('Searching for term:', searchTerm.trim());
-      const results = await searchResults(searchTerm.trim());
-      console.log('Search completed, results:', results);
       
-      if (results && results.length > 0) {
-        onSearch(results[0]); // إرجاع أول نتيجة
+      // البحث في البيانات المحلية
+      const filteredStudents = students.filter(student => 
+        student.name.toLowerCase().includes(searchTerm.trim().toLowerCase())
+      );
+      
+      console.log('Search completed, results:', filteredStudents);
+      
+      if (filteredStudents && filteredStudents.length > 0) {
+        // تحويل Student إلى Result
+        const result: Result = {
+          id: filteredStudents[0].id,
+          name: filteredStudents[0].name,
+          category: filteredStudents[0].category,
+          grade: filteredStudents[0].grade,
+          rank: filteredStudents[0].rank,
+          no: filteredStudents[0].id
+        };
+        onSearch(result);
       } else {
         console.log('No results found');
         onSearch(null);

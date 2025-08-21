@@ -136,7 +136,7 @@ function App() {
           {currentPage === "results" && (
             <>
               <SearchSection
-                students={[]}
+                students={rankedStudents}
                 onSearch={handleSearchResult}
                 isDarkMode={isDarkMode}
               />
@@ -263,7 +263,7 @@ function App() {
 
               <StatsSection stats={stats} isDarkMode={isDarkMode} />
               <AllResultsSection
-                students={[]}
+                students={rankedStudents}
                 isDarkMode={isDarkMode}
               />
             </>
