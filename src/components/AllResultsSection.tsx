@@ -1,27 +1,50 @@
 import React, { useState } from 'react';
-import { Student, Result } from '../types';
+import { Result } from '../types';
 import { ChevronDown, ChevronUp, List, Filter, Clock, Calendar, AlertCircle } from 'lucide-react';
 import { getCategoryColor, getGradeColor } from '../utils/contestStats';
+import { supabase } from '../utils/supabase';
 
 interface AllResultsSectionProps {
-  students: Student[];
   isDarkMode?: boolean;
 }
 
-export const AllResultsSection: React.FC<AllResultsSectionProps> = ({ students, isDarkMode = false }) => {
+export const AllResultsSection: React.FC<AllResultsSectionProps> = ({ isDarkMode = false }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [contestStarted] = useState(true); // النتائج متاحة الآن
+  const [results, setResults] = useState<Result[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   
-  // تحويل Students إلى Results
-  const results: Result[] = students.map(student => ({
-    id: student.id,
-    name: student.name,
-    category: student.category,
-    grade: student.grade,
-    rank: student.rank,
-    no: student.id
-  }));
+  // جلب النتائج من Supabase
+  const fetchResults = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('results')
+        .select('*')
+        .order('grade', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching results:', error);
+        return;
+      }
+
+      // تحويل البيانات وإضافة الترتيب
+      const formattedResults: Result[] = (data || []).map((item, index) => ({
+        id: item.no,
+        name: item.name,
+        category: item.category?.toString() || 'غير محدد',
+        grade: item.grade || 0,
+        rank: index + 1,
+        no: item.no
+      }));
+
+      setResults(formattedResults);
+    } catch (error) {
+      console.error('Error fetching results:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   const categories = [...new Set(results.map(r => r.category))];
   const filteredResults = selectedCategory === 'all' 
@@ -29,6 +52,9 @@ export const AllResultsSection: React.FC<AllResultsSectionProps> = ({ students, 
     : results.filter(r => r.category === selectedCategory);
 
   const handleExpand = () => {
+    if (!isExpanded && results.length === 0) {
+      fetchResults();
+    }
     setIsExpanded(!isExpanded);
   };
 

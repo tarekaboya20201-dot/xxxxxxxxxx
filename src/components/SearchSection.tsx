@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Search, User, AlertTriangle } from 'lucide-react';
-import { Student, Result } from '../types';
+import { Result } from '../types';
+import { supabase } from '../utils/supabase';
 
 interface SearchSectionProps {
-  students: Student[];
   onSearch: (result: Result | null) => void;
   isDarkMode?: boolean;
 }
 
-export default function SearchSection({ students, onSearch, isDarkMode = false }: SearchSectionProps) {
+export default function SearchSection({ onSearch, isDarkMode = false }: SearchSectionProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
@@ -33,22 +33,31 @@ export default function SearchSection({ students, onSearch, isDarkMode = false }
     try {
       console.log('Searching for term:', searchTerm.trim());
       
-      // البحث في البيانات المحلية
-      const filteredStudents = students.filter(student => 
-        student.name.toLowerCase().includes(searchTerm.trim().toLowerCase())
-      );
+      // البحث في جدول results في Supabase
+      const { data, error } = await supabase
+        .from('results')
+        .select('*')
+        .ilike('name', `%${searchTerm.trim()}%`)
+        .limit(1);
       
-      console.log('Search completed, results:', filteredStudents);
+      if (error) {
+        console.error('Search error:', error);
+        setSearchError('حدث خطأ أثناء البحث');
+        onSearch(null);
+        return;
+      }
       
-      if (filteredStudents && filteredStudents.length > 0) {
-        // تحويل Student إلى Result
+      console.log('Search completed, results:', data);
+      
+      if (data && data.length > 0) {
+        // تحويل بيانات Supabase إلى Result
         const result: Result = {
-          id: filteredStudents[0].id,
-          name: filteredStudents[0].name,
-          category: filteredStudents[0].category,
-          grade: filteredStudents[0].grade,
-          rank: filteredStudents[0].rank,
-          no: filteredStudents[0].id
+          id: data[0].no,
+          name: data[0].name,
+          category: data[0].category?.toString() || 'غير محدد',
+          grade: data[0].grade || 0,
+          rank: 1, // سيتم حساب الترتيب لاحقاً
+          no: data[0].no
         };
         onSearch(result);
       } else {
